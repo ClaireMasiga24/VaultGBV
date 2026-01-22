@@ -1,65 +1,157 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+
+type ShelterStatus = "fully_operational" | "limited";
+
+const shelters = [
+  {
+    name: "Jinja GBV Shelter",
+    district: "Jinja",
+    phone: "+256700000111",
+    services: "Emergency shelter, counselling",
+    status: "fully_operational" as ShelterStatus,
+    note: "Currently accepting survivors",
+  },
+  {
+    name: "Mbarara Safe Shelter",
+    district: "Mbarara",
+    phone: "+256700000222",
+    services: "Temporary shelter, legal support",
+    status: "fully_operational" as ShelterStatus,
+    note: "Call before arrival",
+  },
+  {
+    name: "Masaka Protection Shelter",
+    district: "Masaka",
+    phone: "+256700000333",
+    services: "Emergency shelter",
+    status: "fully_operational" as ShelterStatus,
+    note: "Limited beds available",
+  },
+  {
+    name: "Kalangala Shelter",
+    district: "Kalangala",
+    phone: "+256700000444",
+    services: "Temporary shelter",
+    status: "limited" as ShelterStatus,
+    note: "Limited capacity — please call first",
+  },
+];
+
+export default function FindHelp() {
+  const [location, setLocation] = useState("");
+  const [results, setResults] = useState<typeof shelters>([]);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+
+  const searchShelters = (loc?: string) => {
+    const query = (loc ?? location).toLowerCase();
+
+    const filtered = shelters.filter(
+      (s) =>
+        s.district.toLowerCase().includes(query) &&
+        (s.status === "fully_operational" || s.status === "limited")
+    );
+
+    setResults(filtered);
+  };
+
+  // SafeBoda-style location detection (explicit + optional)
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Location is not supported on this device.");
+      return;
+    }
+
+    setLoadingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        // TEMP MVP LOGIC:
+        // We simulate GPS → district mapping
+        // Later this will be real mapping
+        const simulatedDistrict = "Masaka";
+
+        setLocation(simulatedDistrict);
+        searchShelters(simulatedDistrict);
+        setLoadingLocation(false);
+      },
+      () => {
+        alert("Unable to get your location.");
+        setLoadingLocation(false);
+      }
+    );
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="min-h-screen bg-[#F6F4F8] px-4 py-6">
+      <h1 className="text-xl font-semibold text-[#4B2E83] mb-4">
+        Find Help Near You
+      </h1>
+
+      <p className="text-sm text-[#2B2B2B] mb-4">
+        You can search by district or use your current location.
+      </p>
+
+      {/* SafeBoda-style button */}
+      <button
+        onClick={detectLocation}
+        disabled={loadingLocation}
+        className="w-full h-12 border border-[#4B2E83] text-[#4B2E83] rounded-md font-medium mb-4"
+      >
+        {loadingLocation ? "Detecting location…" : "Use my location"}
+      </button>
+
+      <input
+        type="text"
+        placeholder="e.g. Rakai, Masaka, Jinja"
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        className="w-full h-12 px-3 border border-gray-300 rounded-md mb-3"
+      />
+
+      <button
+        onClick={() => searchShelters()}
+        className="w-full h-12 bg-[#4B2E83] text-white rounded-md font-medium mb-6"
+      >
+        Search
+      </button>
+
+      {results.length > 0 && (
+        <div className="space-y-4">
+          {results.map((shelter, index) => (
+            <div
+              key={index}
+              className="border border-gray-300 rounded-md p-4 bg-white"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <h2 className="font-medium text-[#4B2E83]">
+                {shelter.name}
+              </h2>
+
+              <p className="text-sm text-[#2B2B2B]">
+                {shelter.services}
+              </p>
+
+              <p
+                className={`text-sm mt-1 font-medium ${
+                  shelter.status === "fully_operational"
+                    ? "text-green-600"
+                    : "text-yellow-600"
+                }`}
+              >
+                {shelter.note}
+              </p>
+
+              <a
+                href={`tel:${shelter.phone}`}
+                className="inline-block mt-3 text-[#4B2E83] font-medium"
+              >
+                Call {shelter.phone}
+              </a>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      )}
+    </main>
   );
 }
