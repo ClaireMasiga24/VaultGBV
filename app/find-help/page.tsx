@@ -1,53 +1,102 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
 
-export default function HomePage() {
+type Support = {
+  id: number;
+  name: string;
+  description: string;
+  phone: string;
+};
+
+const VERIFIED_SUPPORT: Support[] = [
+  {
+    id: 1,
+    name: "National GBV Helpline (Uganda)",
+    description: "24/7 crisis support & referrals",
+    phone: "116",
+  },
+  {
+    id: 2,
+    name: "Police Family Protection Unit",
+    description: "Immediate protection & response",
+    phone: "999",
+  },
+];
+
+export default function FindHelpPage() {
+  const [location, setLocation] = useState<string>("Detecting your location…");
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocation("Location unavailable");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        // NOTE: No fake reverse-geocoding
+        setLocation("Your location has been detected");
+      },
+      () => {
+        setLocation("Location unavailable");
+      }
+    );
+  }, []);
+
   return (
-    <main className="min-h-screen bg-[#F6F4F8] px-5 py-10 flex flex-col justify-between">
-      
-      {/* Center block */}
-      <section className="flex flex-col items-center text-center mt-12">
-        <h1 className="text-3xl font-bold text-[#4B2E83] mb-3">
-          Vault GBV
-        </h1>
+    <main className="min-h-screen bg-[#faf8fc] px-6 py-12">
+      <h1 className="text-3xl font-bold text-center text-purple-700">
+        Help Near You
+      </h1>
 
-        <p className="text-[#2B2B2B] text-base max-w-sm mb-10">
-          A safe place to find help, understand your rights, and connect to
-          protection services near you.
+      <p className="text-center mt-2 text-gray-600">
+        {location}
+      </p>
+
+      {/* Honest status */}
+      <section className="max-w-3xl mx-auto mt-10 text-center">
+        <p className="text-sm text-gray-700">
+          We are working to verify nearby shelters in your area.
+          In the meantime, you can reach trusted support services below.
         </p>
+      </section>
 
-        {/* Action Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
-          
-          <Link href="/find-help">
-            <div className="h-32 bg-[#4B2E83] text-white rounded-xl flex flex-col items-center justify-center shadow-md active:scale-95 transition">
-              <span className="text-lg font-semibold">
-                Find Help
-              </span>
-              <span className="text-sm opacity-90 mt-1">
-                Shelters & support near you
-              </span>
+      {/* Verified support grid */}
+      <section className="max-w-5xl mx-auto mt-12">
+        <h2 className="text-lg font-semibold text-purple-700 mb-4">
+          Trusted support available now
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {VERIFIED_SUPPORT.map((item) => (
+            <div
+              key={item.id}
+              className="rounded-xl bg-white p-6 shadow border"
+            >
+              <h3 className="font-bold text-purple-700">
+                {item.name}
+              </h3>
+
+              <p className="text-sm text-gray-600 mt-1">
+                {item.description}
+              </p>
+
+              <a
+                href={`tel:${item.phone}`}
+                className="block mt-4 bg-purple-700 text-white text-center font-semibold py-3 rounded-lg"
+              >
+                Call now
+              </a>
             </div>
-          </Link>
-
-          <div className="h-32 border border-[#4B2E83] text-[#4B2E83] rounded-xl flex flex-col items-center justify-center shadow-sm active:scale-95 transition">
-            <span className="text-lg font-semibold">
-              Know Your Rights
-            </span>
-            <span className="text-sm mt-1 text-[#4B2E83]/80">
-              Legal & safety information
-            </span>
-          </div>
-
+          ))}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="text-xs text-center text-gray-500 mt-16 px-4">
-        If you are in immediate danger, contact emergency services or a trusted
-        person near you.
-      </footer>
+      <p className="text-center text-xs text-gray-500 mt-14">
+        If you are in immediate danger, please call emergency services or a
+        trusted person near you.
+      </p>
     </main>
   );
 }
