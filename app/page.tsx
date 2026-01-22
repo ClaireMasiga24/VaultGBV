@@ -37,7 +37,7 @@ export default function HomePage() {
 
       <footer className="text-xs text-center text-gray-500 mt-16 px-4">
         If you are in immediate danger, contact emergency services or a trusted
-        person near you.
+        shelter near you.
       </footer>
     </main>
   );
